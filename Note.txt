@@ -1,0 +1,112 @@
+﻿RabbitMQ flowsu
+
+Producer--> Routing key --> Exchange --> Queue- lar --> Consumer lər
+
+Exchanges
+
+- Direct Exchange:
+
+Mesajlarım direct olaraq belirli bir queue - e gonderilmesini eden exchange tipidir.
+RabbitMQ- da exchange teyin etmedikde default olaraq direct excahge olur.
+
+Direkt exchange esasen error mesajların handle edilmesi meselelerinde istifade oluna biler.
+Meselen bir sistemde file yukleme xetasi , database connection xetasi və s. kimi ferqli errorlar ola biler.
+Bu error measjalarının izlənməsi və lazim oldugunda həll olunması lazım ola biler.
+Bu halda hər bir xəta tipi üçün fərqli queue yazila biler ve bu queue-lara yonlendiriler biler.
+Bu cur meselelerin helli ucun be error lari izlenilmesi ucun istifade oluna biler.
+
+- Fanout Exchange
+
+Mesajları bu exchange bind olmush olan bütün queue gonderilmesini eder.
+Publisher mesajların gonderildiyi queue adlarini diqqete almaz ve mesajları bütün queue - lara gonderer.
+
+- Topic Exchange
+
+Routing key'leri kullanaraq mesajları kuyruklara yönləndirmək üçün kullanılan bir exchnangedir.
+Bu exchange ile routing key-in qisminə, formatina , formasına və s. dəki keylere görə queue- lara mesaj gonderilir.
+
+- Header Exchange
+
+Routing key yerine header-leri istifade ederek mesajları queuelara yonlendirmek ucun istifade edilen exchangedir.Headerler key valu formatinda olur.
+
+---
+
+- Advanced Message Queuing Protocol(Gelişmiş Kuyruk Mimarisi Nedir?)
+
+RabbitMQ Texnologiyasinin esas meqsedi ,
+Məhz, intensiv qaynaqlar tələb edən bu işləri, tapşırıqları və əməliyyatları dərhal etməyə başlamadan və tamamlanmasını gözləmədən,
+daha sonra miqyaslı bir vəziyyətdə planlaşdırmaqdır.
+
+- Round-Robin Dispatching
+RabbitMq - default olaraq butun consumerlere sirasiyla mesaj gonderir.
+- Message Acknowledgement
+RabbitMQ tüküticiye göndərilən mesajı bir şəkildə emal etmək və ya emal edildikdən dərhal sonra növbədən silmək üçün işarələyir. Lakin Message Acknowledgement sayəsində biz artıq göndərilən mesaj consumer tərəfindən ugurla alınıb işləndikdən sonra mesajın silinməsini təmin edəcəkdir.
+- Message Acknowledgement prablemləri
+
+Bir mesaj işlənmədən consumer problem yaşayarsa bu mesajın təhlükəsiz bir formada işlənəbilməsi üçün başqa bir consumer tərəfindən consume oluna bilmılidir.Əks təqdirdə mesaj queue consumeri tərəfindən alındığı an silinərsə bu halda data itgisi ehtimalı ola bilər. Bu cür vəziyyətlər üçün Message Acknoüledgement özəlliyi şərtdir. Əgər ki Message Acknoüledgement özəlliyi istifadə ediriksə hökmən mesajı consume etmək uğurla yekunlaşdığı halda RabbitMq ya mesajın silinməsi üçün xəbər göndərməliyik. Əks təqdirdə  mesaj təkrar göndəriləcək və başqa bir consumer tərəfindən consume ediləcəkdir.Bu haldada mesajın birdən cox consume edilmə ehtimalı vardır.
+
+Digər bir halda əgər mesajların ugurla silinməsin rabbitMQ - ya melumat vermesek. Queue-larda mesajların çoxalmasına səbəb olacaqdır və bu yavaşlamaya performans itgisine getirib cıxaracaqdır.
+
+- Message Acknowledgement necə yapılandırılır?
+
+BasicAck  methodu ile istifade edilir.
+
+Bunun ucun Consumerde autoAck:false etmek lazimdir. ki RabbitMq consumerden onay gozlesin mesaji silmek ucun.
+
+BasicNack methodu ile mesajları consume etmeye bilerik.
+
+BasicCancel methodu ile queue- da olan butun mesjaları redd ede bilerik.
+
+BasicReject methodu ile sadece bir mesajı redd ede bilerik.
+
+- Message Durability
+
+Bu Queue declareMethodunda() publisher terfde config olunur. Yeni RabbitMq - da  her hansisa sistem cokmesi oldugu halda butun queue - ler ve message-lar silinecekdir. Bu hallarda QueueDeclare() methodunda durable:true etmek lazimdir.bu bir queue ucun configurationdur.
+
+Mesaj ucun confiuration etmek ucun ise 
+
+IBasicPeroperties properties = channel.CreatebasicProperties();
+
+properties.Persistent = true
+
+configurasiyasin etmek gereklidir.
+
+---
+
+- P2P(Point to Point )
+
+bu yanaşmada bir publisher lazimi mesajı direkt bir queue a göndərir və bu mesaj queue işləyən bir consumer tərəfindən işlənilir. Əyər ki senaryo gərəyi bir mesajın bir consumer tərəfiondən işlənməsi lazımdırsa bu yanaşma istifadə edilir.
+
+![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/b75fc8f4-8bd2-4bcd-9cd4-f2309592ed75/013e0a28-3468-41e7-a0e1-860f70b21486/Untitled.png)
+
+- Publish.Subscribe (pub/sub)
+
+Bu yanaşmada publisher mesajı bir exchange-e göndərir və mesaj bu exchange-e bind edilmiş olan bütün queue-lara yönləndirilir. Bu dizayn bir mesajın bir çox consumer tərəfindən işlənməsi lazım olduğu hallarda istifadə olunur.
+
+![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/b75fc8f4-8bd2-4bcd-9cd4-f2309592ed75/a2f99d93-d479-4fd5-9143-639d580000dd/Untitled.png)
+
+- Work queue
+
+Bu dizaynda publisher tərəfindən yayınlanmış bir mesajın birdən çox consumer arasında yalnızca biri tərəfindən consume edilməsidir.Bu halda mesajların işlənməsi bütün consumerlər tərəfindən eyni iy yuku beraber ish payına shib olur  olur.
+
+![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/b75fc8f4-8bd2-4bcd-9cd4-f2309592ed75/b41f1626-e15e-45d8-b2aa-5d7a5b1c3010/Untitled.png)
+
+- Request/Response
+
+Pusblisher bir queue ya bir mesaj göndərir və bu mesajı işləyən consumerdən nəticəyə dair başqa bir queue-dən bir response gözləyər. Bu cür senaryolarda üçün olduqca uygun bir yanaşmadır.
+
+---
+
+- ESB(Enterprise Service Bus) Nədir?
+
+ESB , servisler arasi integrasiyani temin eden komponentlerin butunudur deye bilerik.
+
+Yeni ferqli sistemlerin bir biriyle elaqe qurmasini temin etmek ucun istifade edilern bir arxitektura ve vasitedir deye bilerik. ESB ise RabbitMq kimi ferqli sistemlerin birbiriyle elaqe qurulmasini temin eden texnologiyalarin istifadesini ve idare oluna bilirliyini asanlashdiran bir yontemdir.
+
+- MassTransit nedir?
+
+MassTransit is an open-source messaging library designed for the .NET ecosystem. It excels in enabling communication and secure data transfer between applications, especially in the realm of asynchronous, distributed applications
+
+MassTransit  Tamamen Ferqli servisler arasinda message-based communication yaradan bir transport gateway -dir.
+
+- Transport Gateway, ferqli sistemler arasinda ferqli elaqe pratakollari istifade ederek sistemler arasinda elaqe qurmagi temin eden bir vasitedir.
